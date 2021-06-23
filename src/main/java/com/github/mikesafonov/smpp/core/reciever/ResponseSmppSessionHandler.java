@@ -1,10 +1,7 @@
 package com.github.mikesafonov.smpp.core.reciever;
 
 import com.cloudhopper.smpp.impl.DefaultSmppSessionHandler;
-import com.cloudhopper.smpp.pdu.DeliverSm;
-import com.cloudhopper.smpp.pdu.PduRequest;
-import com.cloudhopper.smpp.pdu.PduResponse;
-import com.cloudhopper.smpp.pdu.SubmitSm;
+import com.cloudhopper.smpp.pdu.*;
 import com.cloudhopper.smpp.util.DeliveryReceipt;
 import com.cloudhopper.smpp.util.DeliveryReceiptException;
 import com.github.mikesafonov.smpp.core.dto.DeliveryReport;
@@ -31,7 +28,7 @@ public class ResponseSmppSessionHandler extends DefaultSmppSessionHandler {
     private final List<DeliveryReportConsumer> deliveryReportConsumers;
 
     @Autowired
-    private SubmitSmConsumer submitSmConsumer;
+    private DeliverSmConsumer submitSmConsumer;
 
     public ResponseSmppSessionHandler(String clientId, @NotNull List<DeliveryReportConsumer> deliveryReportConsumers) {
         this.clientId = requireNonNull(clientId);
@@ -43,10 +40,7 @@ public class ResponseSmppSessionHandler extends DefaultSmppSessionHandler {
         log.debug(pduRequest.toString());
         if (isDelivery(pduRequest)) {
             processReport(pduRequest);
-        }else{
-            submitSmConsumer.accept((SubmitSm) pduRequest);
         }
-
         return pduRequest.createResponse();
     }
 
@@ -62,7 +56,7 @@ public class ResponseSmppSessionHandler extends DefaultSmppSessionHandler {
                 deliveryReportConsumer.accept(report);
             }
         } catch (DeliveryReceiptException e) {
-            log.error(e.getMessage(), e);
+            submitSmConsumer.accept((DeliverSm) pduRequest);
         }
     }
 
