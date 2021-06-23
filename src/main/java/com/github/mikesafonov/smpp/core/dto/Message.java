@@ -50,6 +50,10 @@ public class Message {
     @Nullable
     private String validityPeriod;
 
+    private int totalNumber;
+    private int sequenceNumber;
+
+
     public Message(@NotBlank String text, @NotBlank String msisdn, @NotBlank String source,
                    @Nullable String messageId, @NotNull MessageType messageType) {
         this.text = text;
@@ -86,6 +90,8 @@ public class Message {
         private String source;
         private String messageId;
         private String validityPeriod;
+        private int totalNumber;
+        private int sequenceNumber;
 
         public MessageBuilder(String text, MessageType messageType) {
             this.text = text;
@@ -112,9 +118,19 @@ public class Message {
             return this;
         }
 
+        public MessageBuilder totalNumber(int totalNumber){
+            this.totalNumber = totalNumber;
+            return this;
+        }
+
+        public MessageBuilder sequenceNumber(int sequenceNumber){
+            this.sequenceNumber = sequenceNumber;
+            return this;
+        }
+
         public Message build() {
             return new Message(text, msisdn, source, messageId,
-                    messageType, validityPeriod);
+                    messageType, validityPeriod, totalNumber, sequenceNumber);
         }
     }
 }

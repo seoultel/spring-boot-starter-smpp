@@ -4,12 +4,14 @@ import com.cloudhopper.smpp.impl.DefaultSmppSessionHandler;
 import com.cloudhopper.smpp.pdu.DeliverSm;
 import com.cloudhopper.smpp.pdu.PduRequest;
 import com.cloudhopper.smpp.pdu.PduResponse;
+import com.cloudhopper.smpp.pdu.SubmitSm;
 import com.cloudhopper.smpp.util.DeliveryReceipt;
 import com.cloudhopper.smpp.util.DeliveryReceiptException;
 import com.github.mikesafonov.smpp.core.dto.DeliveryReport;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTimeZone;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -28,6 +30,9 @@ public class ResponseSmppSessionHandler extends DefaultSmppSessionHandler {
     private final String clientId;
     private final List<DeliveryReportConsumer> deliveryReportConsumers;
 
+    @Autowired
+    private SubmitSmConsumer submitSmConsumer;
+
     public ResponseSmppSessionHandler(String clientId, @NotNull List<DeliveryReportConsumer> deliveryReportConsumers) {
         this.clientId = requireNonNull(clientId);
         this.deliveryReportConsumers = requireNonNull(deliveryReportConsumers);
@@ -38,6 +43,8 @@ public class ResponseSmppSessionHandler extends DefaultSmppSessionHandler {
         log.debug(pduRequest.toString());
         if (isDelivery(pduRequest)) {
             processReport(pduRequest);
+        }else{
+            submitSmConsumer.accept((SubmitSm) pduRequest);
         }
 
         return pduRequest.createResponse();

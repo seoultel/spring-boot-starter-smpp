@@ -11,6 +11,7 @@ import com.github.mikesafonov.smpp.core.utils.MessageUtil;
 import lombok.SneakyThrows;
 
 import javax.validation.constraints.NotNull;
+import java.io.ByteArrayOutputStream;
 
 /**
  * Encoder for simple/datagram messages
@@ -26,10 +27,14 @@ public class SimpleSubmitSmEncoder implements SubmitSmEncoder {
         byte coding = findCoding(countWithEncoding.getCharset());
         submitSm.setDataCoding(coding);
         byte[] messageByte = CharsetUtil.encode(message.getText(), countWithEncoding.getCharset());
-        if (countWithEncoding.getCount() > 1) {
-            submitSm.setShortMessage(new byte[0]);
-            submitSm.addOptionalParameter(new Tlv(SmppConstants.TAG_MESSAGE_PAYLOAD, messageByte));
-        } else {
+
+        if(message.getTotalNumber() > 1){
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            byteArrayOutputStream.write(new byte[]{0x05, 0x00, 0x03, 0x00, (byte)message.getTotalNumber(), (byte)message.getSequenceNumber()});
+            byteArrayOutputStream.write(messageByte);
+            submitSm.setEsmClass(SmppConstants.ESM_CLASS_UDHI_MASK);
+            submitSm.setShortMessage(byteArrayOutputStream.toByteArray());
+        }else {
             submitSm.setShortMessage(messageByte);
         }
     }
